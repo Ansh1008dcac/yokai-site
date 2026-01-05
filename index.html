@@ -1,0 +1,2094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOKAI SYNDICATE - The Ritual of Shadows</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Noto+Sans+JP:wght@400;700;900&family=Cinzel:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0000;
+            color: #8a0000;
+            font-family: 'Courier Prime', monospace;
+            height: 100vh;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(139, 0, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(80, 0, 0, 0.15) 0%, transparent 50%);
+        }
+
+        /* PARTICLE SYSTEM */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .spirit-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: radial-gradient(circle, #ff0000 0%, transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            animation: float-spirit 15s infinite;
+        }
+
+        @keyframes float-spirit {
+            0% {
+                transform: translate(0, 100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translate(var(--x-drift), -100vh) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* CRT SCANLINES */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                rgba(0, 0, 0, 0) 50%,
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0.3;
+        }
+
+        /* VIGNETTE */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.9);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* DISCORD LINK */
+        #discord-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #ff0000;
+            text-decoration: none;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 300;
+            transition: all 0.3s;
+            opacity: 0.6;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+        
+        #discord-link:hover {
+            opacity: 1;
+            color: #ff3333;
+            text-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+        }
+
+        /* LAUNCH INFO */
+        #launch-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            text-align: right;
+            font-size: 10px;
+            color: #660000;
+            z-index: 300;
+            line-height: 1.6;
+        }
+
+        #launch-info .highlight {
+            color: #ff0000;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+        }
+
+        /* TERMINAL CONTAINER */
+        #terminal-container {
+            width: 90%;
+            max-width: 900px;
+            height: 80vh;
+            margin: 10vh auto;
+            background: linear-gradient(135deg, rgba(10, 0, 0, 0.95), rgba(20, 0, 0, 0.95));
+            border: 2px solid #4a0000;
+            box-shadow: 
+                0 0 50px rgba(138, 0, 0, 0.3),
+                inset 0 0 100px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* TERMINAL HEADER */
+        #terminal-header {
+            background: linear-gradient(180deg, #330000, #1a0000);
+            color: #ff0000;
+            padding: 10px 20px;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #4a0000;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+
+        #terminal-title {
+            letter-spacing: 3px;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        #terminal-status {
+            font-size: 10px;
+            color: #cc0000;
+        }
+
+        /* TERMINAL OUTPUT */
+        #terminal-output {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.8;
+            background: radial-gradient(ellipse at center, rgba(20, 0, 0, 0.3), transparent);
+        }
+
+        #terminal-output::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #terminal-output::-webkit-scrollbar-track {
+            background: #0a0000;
+        }
+
+        #terminal-output::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #660000, #330000);
+            border: 1px solid #4a0000;
+        }
+
+        .terminal-line {
+            margin-bottom: 8px;
+            animation: fadeInLine 0.4s ease-out;
+        }
+
+        @keyframes fadeInLine {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .prompt {
+            color: #cc0000;
+            text-shadow: 0 0 5px rgba(204, 0, 0, 0.5);
+        }
+
+        .error {
+            color: #ff0000;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+            font-weight: bold;
+        }
+
+        .warning {
+            color: #ff6600;
+            text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+        }
+
+        .success {
+            color: #ff3333;
+            text-shadow: 0 0 8px rgba(255, 51, 51, 0.6);
+        }
+
+        .info {
+            color: #4a0000;
+        }
+
+        .ritual-text {
+            color: #990000;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-weight: bold;
+            text-shadow: 0 0 15px rgba(153, 0, 0, 0.8);
+        }
+
+        /* TERMINAL INPUT AREA */
+        #terminal-input-area {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(180deg, rgba(20, 0, 0, 0.8), rgba(10, 0, 0, 0.9));
+        }
+
+        #input-prompt {
+            color: #cc0000;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(204, 0, 0, 0.5);
+        }
+
+        #terminal-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #ff0000;
+            font-family: 'Courier Prime', monospace;
+            font-size: 14px;
+            outline: none;
+            caret-color: #ff0000;
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+        }
+
+        /* CHALLENGE DISPLAY */
+        #challenge-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(20, 0, 0, 0.98), rgba(10, 0, 0, 0.98));
+            border: 3px solid #8a0000;
+            padding: 40px 60px;
+            text-align: center;
+            box-shadow: 
+                0 0 100px rgba(138, 0, 0, 0.8),
+                inset 0 0 50px rgba(0, 0, 0, 0.8);
+            display: none;
+            z-index: 150;
+        }
+
+        #challenge-title {
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 16px;
+            color: #ff0000;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+        }
+
+        #challenge-code {
+            font-size: 36px;
+            letter-spacing: 12px;
+            color: #ff0000;
+            margin: 25px 0;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+            font-weight: bold;
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                text-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+            }
+            50% {
+                text-shadow: 0 0 30px rgba(255, 0, 0, 1), 0 0 40px rgba(255, 0, 0, 0.5);
+            }
+        }
+
+        #challenge-timer {
+            font-size: 52px;
+            color: #cc0000;
+            margin-top: 25px;
+            font-weight: bold;
+        }
+
+        #challenge-timer.critical {
+            color: #ff0000;
+            animation: pulse-critical 0.3s infinite;
+        }
+
+        @keyframes pulse-critical {
+            0%, 100% {
+                transform: scale(1);
+                color: #ff0000;
+            }
+            50% {
+                transform: scale(1.1);
+                color: #ff3333;
+            }
+        }
+
+        /* PROGRESS BAR */
+        #progress-container {
+            position: absolute;
+            top: 45px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #4a0000;
+            display: none;
+            z-index: 20;
+        }
+
+        #progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #660000, #cc0000, #ff0000);
+            width: 0%;
+            transition: width 0.4s ease-out;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+        }
+
+        /* KANJI BACKGROUND */
+        #kanji-bg {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 350px;
+            font-weight: 900;
+            color: #1a0000;
+            z-index: 0;
+            opacity: 0.08;
+            pointer-events: none;
+            text-shadow: 0 0 50px rgba(138, 0, 0, 0.3);
+        }
+
+        /* TORII SYMBOL */
+        .torii-symbol {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            font-size: 200px;
+            opacity: 0;
+            z-index: 0;
+            color: #330000;
+            pointer-events: none;
+            transition: all 1s;
+        }
+
+        /* MODALS */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            display: none;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(10, 0, 0, 0.98), rgba(20, 0, 0, 0.98));
+        }
+
+        .glitch-text {
+            font-size: 52px;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-weight: 900;
+            color: #ff0000;
+            letter-spacing: 10px;
+            text-shadow: 
+                3px 3px 0 #330000,
+                -3px -3px 0 #660000,
+                0 0 30px rgba(255, 0, 0, 0.8);
+            animation: glitch 2s infinite;
+        }
+
+        @keyframes glitch {
+            0%, 100% {
+                transform: translate(0);
+            }
+            20% {
+                transform: translate(-3px, 3px);
+            }
+            40% {
+                transform: translate(3px, -3px);
+            }
+            60% {
+                transform: translate(-3px, -3px);
+            }
+            80% {
+                transform: translate(3px, 3px);
+            }
+        }
+
+        .subtitle {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #cc0000;
+            max-width: 650px;
+            line-height: 2;
+            text-align: left;
+            font-family: 'Courier Prime', monospace;
+            text-shadow: 0 0 5px rgba(204, 0, 0, 0.3);
+        }
+
+        .tagline {
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 18px;
+            color: #ff0000;
+            margin: 20px 0;
+            font-style: italic;
+            text-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+        }
+
+        /* BUTTONS */
+        .btn-main {
+            margin-top: 40px;
+            background: transparent;
+            border: 2px solid #8a0000;
+            color: #ff0000;
+            padding: 18px 50px;
+            font-family: 'Courier Prime', monospace;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.4s;
+            box-shadow: 0 0 20px rgba(138, 0, 0, 0.3);
+        }
+
+        .btn-main:hover {
+            background: #330000;
+            border-color: #ff0000;
+            color: #fff;
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.6);
+            transform: scale(1.05);
+        }
+        
+        .btn-pfp {
+            margin-top: 25px;
+            background: linear-gradient(135deg, #660000, #990000);
+            border: 2px solid #ff0000;
+            color: #fff;
+            padding: 18px 50px;
+            font-family: 'Courier Prime', monospace;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: bold;
+            animation: pulse-pfp 3s infinite;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+        }
+        
+        .btn-pfp:hover {
+            background: linear-gradient(135deg, #990000, #cc0000);
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.8);
+        }
+
+        @keyframes pulse-pfp {
+            0%, 100% {
+                box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 50px rgba(255, 0, 0, 0.8), 0 0 70px rgba(255, 0, 0, 0.3);
+            }
+        }
+
+        /* WIN STATE */
+        #win-screen {
+            background: linear-gradient(135deg, rgba(10, 0, 0, 0.5), rgba(20, 0, 0, 0.7));
+            backdrop-filter: blur(10px);
+        }
+        
+        .elder-text {
+            color: #ff3333;
+            font-size: 14px;
+            border: 2px solid #660000;
+            background: linear-gradient(135deg, rgba(20, 0, 0, 0.95), rgba(30, 0, 0, 0.95));
+            padding: 30px;
+            margin-bottom: 25px;
+            border-left: 5px solid #ff0000;
+            text-align: left;
+            max-width: 550px;
+            box-shadow: 
+                0 0 30px rgba(138, 0, 0, 0.5),
+                inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 768px) {
+            #terminal-container {
+                width: 95%;
+                height: 85vh;
+                margin: 7.5vh auto;
+            }
+            
+            .glitch-text {
+                font-size: 36px;
+            }
+            
+            #challenge-code {
+                font-size: 28px;
+                letter-spacing: 8px;
+            }
+            
+            #kanji-bg {
+                font-size: 200px;
+            }
+        }
+
+        /* MYTHICAL SCROLL */
+        #scroll-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 250;
+            animation: fadeIn 0.5s;
+        }
+
+        .scroll-container {
+            position: relative;
+            width: 600px;
+            max-width: 90%;
+            height: 450px;
+            background: linear-gradient(180deg, #2a1a0a, #1a0f05);
+            border: 3px solid #4a2510;
+            box-shadow: 
+                0 0 50px rgba(138, 0, 0, 0.8),
+                inset 0 0 100px rgba(0, 0, 0, 0.8);
+            animation: scrollUnfurl 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform-origin: top center;
+        }
+
+        @keyframes scrollUnfurl {
+            0% {
+                transform: scaleY(0) rotateX(90deg);
+                opacity: 0;
+            }
+            60% {
+                transform: scaleY(1.05) rotateX(0deg);
+            }
+            100% {
+                transform: scaleY(1) rotateX(0deg);
+                opacity: 1;
+            }
+        }
+
+        .scroll-top, .scroll-bottom {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            background: linear-gradient(90deg, #3a2010, #2a1510, #3a2010);
+            border-top: 2px solid #5a3520;
+            border-bottom: 2px solid #1a0a00;
+        }
+
+        .scroll-top {
+            top: 0;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .scroll-bottom {
+            bottom: 0;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .scroll-content {
+            padding: 50px 40px;
+            height: 100%;
+            overflow-y: auto;
+            font-family: 'Cinzel', serif;
+            color: #d4a574;
+            text-align: center;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(100, 50, 0, 0.03) 2px,
+                    rgba(100, 50, 0, 0.03) 4px
+                );
+        }
+
+        .scroll-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .scroll-content::-webkit-scrollbar-track {
+            background: #1a0f05;
+        }
+
+        .scroll-content::-webkit-scrollbar-thumb {
+            background: #4a2510;
+        }
+
+        .scroll-title {
+            font-size: 26px;
+            color: #ff0000;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        .scroll-spirit-name {
+            font-size: 32px;
+            color: #ffaa00;
+            margin: 15px 0;
+            text-shadow: 0 0 15px rgba(255, 170, 0, 0.8);
+            font-family: 'Noto Sans JP', sans-serif;
+            letter-spacing: 3px;
+        }
+
+        .scroll-text {
+            font-size: 15px;
+            line-height: 2;
+            color: #c4a574;
+            margin: 20px 0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .scroll-lore {
+            font-style: italic;
+            color: #8a6644;
+            font-size: 13px;
+            margin-top: 25px;
+            padding: 20px;
+            border-top: 1px solid #4a2510;
+            border-bottom: 1px solid #4a2510;
+        }
+
+        .scroll-continue {
+            margin-top: 30px;
+            background: transparent;
+            border: 2px solid #8a0000;
+            color: #ff0000;
+            padding: 12px 30px;
+            font-family: 'Courier Prime', monospace;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .scroll-continue:hover {
+            background: #330000;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        }
+
+        /* USER WELCOME */
+        .user-welcome {
+            color: #ffaa00;
+            text-shadow: 0 0 10px rgba(255, 170, 0, 0.6);
+            font-weight: bold;
+        }
+
+        /* SOUND CONTROL */
+        #sound-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(20, 0, 0, 0.8);
+            border: 1px solid #660000;
+            color: #ff0000;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-family: 'Courier Prime', monospace;
+            font-size: 11px;
+            z-index: 300;
+            transition: all 0.3s;
+        }
+
+        #sound-toggle:hover {
+            background: rgba(30, 0, 0, 0.95);
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+        }
+
+        /* SPIRIT FACES */
+        .spirit-face {
+            position: fixed;
+            font-size: 80px;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+            transition: opacity 2s;
+            filter: blur(2px);
+            animation: spiritFloat 8s infinite;
+        }
+
+        @keyframes spiritFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-20px) rotate(5deg); }
+            50% { transform: translateY(0) rotate(0deg); }
+            75% { transform: translateY(-15px) rotate(-5deg); }
+        }
+
+        .spirit-face.active {
+            opacity: 0.15;
+        }
+
+        /* BLOOD DRIP */
+        .blood-drip {
+            position: fixed;
+            top: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #ff0000, #660000, transparent);
+            animation: drip 3s ease-in forwards;
+            z-index: 99;
+            opacity: 0.8;
+        }
+
+        @keyframes drip {
+            0% {
+                height: 0;
+                top: 0;
+            }
+            50% {
+                height: 40vh;
+                top: 0;
+            }
+            100% {
+                height: 40vh;
+                top: 100vh;
+                opacity: 0;
+            }
+        }
+
+        /* BIRTHDAY MONTH SCREEN */
+        #birthday-screen {
+            display: none;
+        }
+
+        #birthday-screen .subtitle {
+            max-width: 700px;
+        }
+
+        #month-input {
+            background: transparent;
+            border: 2px solid #8a0000;
+            color: #ff0000;
+            padding: 15px 30px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 18px;
+            text-align: center;
+            margin-top: 30px;
+            outline: none;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            width: 300px;
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+        }
+
+        #month-input::placeholder {
+            color: #660000;
+        }
+
+        /* MONTH LORE DISPLAY */
+        .month-lore-box {
+            margin-top: 40px;
+            background: linear-gradient(135deg, rgba(20, 0, 0, 0.95), rgba(30, 0, 0, 0.95));
+            border: 2px solid #660000;
+            padding: 40px;
+            max-width: 600px;
+            box-shadow: 0 0 50px rgba(138, 0, 0, 0.5);
+            animation: fadeIn 1s;
+        }
+
+        .month-kanji {
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 48px;
+            color: #ff0000;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+            font-weight: 900;
+        }
+
+        .month-meaning {
+            font-size: 16px;
+            color: #ffaa00;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+        }
+
+        .month-verse {
+            font-size: 15px;
+            line-height: 2.2;
+            color: #cc0000;
+            font-style: italic;
+            text-shadow: 0 0 5px rgba(204, 0, 0, 0.3);
+        }
+
+        /* TWITTER SHARE */
+        .btn-twitter {
+            margin-top: 30px;
+            background: linear-gradient(135deg, #1DA1F2, #0d8bd9);
+            border: 2px solid #1DA1F2;
+            color: #fff;
+            padding: 18px 50px;
+            font-family: 'Courier Prime', monospace;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 0 30px rgba(29, 161, 242, 0.4);
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-twitter:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(29, 161, 242, 0.7);
+        }
+
+        /* PACT SIGNING SCREEN */
+        #pact-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.97);
+            z-index: 250;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+        }
+
+        .pact-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(0,0,0,0.7), rgba(0,0,0,0.95));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pact-scroll {
+            position: relative;
+            width: 700px;
+            max-width: 90%;
+            background: linear-gradient(180deg, #2a1a0a, #1a0f05);
+            border: 4px solid #4a2510;
+            box-shadow: 
+                0 0 80px rgba(138, 0, 0, 0.9),
+                inset 0 0 100px rgba(0, 0, 0, 0.9);
+            animation: pactUnfurl 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            padding: 50px 40px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes pactUnfurl {
+            0% {
+                transform: scale(0.3) rotateX(90deg);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1) rotateX(0deg);
+                opacity: 1;
+            }
+        }
+
+        .pact-title {
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 36px;
+            color: #ff0000;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+            font-weight: 900;
+            letter-spacing: 5px;
+        }
+
+        .pact-subtitle {
+            font-family: 'Cinzel', serif;
+            font-size: 18px;
+            color: #ffaa00;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+        }
+
+        .pact-text {
+            font-family: 'Cinzel', serif;
+            font-size: 15px;
+            line-height: 2;
+            color: #c4a574;
+            text-align: left;
+            margin: 25px 0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .pact-warning {
+            background: linear-gradient(135deg, rgba(50, 0, 0, 0.9), rgba(30, 0, 0, 0.9));
+            border-left: 4px solid #ff0000;
+            padding: 20px;
+            margin: 30px 0;
+            font-family: 'Courier Prime', monospace;
+            color: #ff3333;
+            font-size: 13px;
+            line-height: 1.8;
+            text-shadow: 0 0 5px rgba(255, 51, 51, 0.5);
+        }
+
+        .pact-warning-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: #ff0000;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .pact-signature-area {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .pact-instruction {
+            font-family: 'Courier Prime', monospace;
+            color: #8a0000;
+            font-size: 13px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #signature-canvas {
+            border: 2px solid #4a0000;
+            background: rgba(0, 0, 0, 0.3);
+            cursor: crosshair;
+            display: block;
+            margin: 0 auto 20px;
+            box-shadow: 
+                0 0 30px rgba(138, 0, 0, 0.5),
+                inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .pact-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-sign {
+            background: linear-gradient(135deg, #660000, #990000);
+            border: 2px solid #ff0000;
+            color: #fff;
+            padding: 15px 40px;
+            font-family: 'Courier Prime', monospace;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-sign:hover {
+            background: linear-gradient(135deg, #990000, #cc0000);
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
+            transform: scale(1.05);
+        }
+
+        .btn-clear {
+            background: transparent;
+            border: 2px solid #660000;
+            color: #cc0000;
+            padding: 15px 40px;
+            font-family: 'Courier Prime', monospace;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-clear:hover {
+            background: rgba(30, 0, 0, 0.5);
+            border-color: #ff0000;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- PARTICLE SYSTEM -->
+    <div id="particles"></div>
+
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+
+    <a href="https://discord.gg/shibuyastation" target="_blank" id="discord-link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 13.564 13.564 0 0 0-1.057 2.172 18.288 18.288 0 0 0-4.639 0 13.562 13.562 0 0 0-1.057-2.172.074.074 0 0 0-.079-.037 19.743 19.743 0 0 0-4.885 1.515.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.076.076 0 0 0-.04.106c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-2.027-8.924-4.684-13.626a.073.073 0 0 0-.032-.028z"/></svg>
+        <span>SHIBUYA STATION ACCESS</span>
+    </a>
+
+    <div id="launch-info">
+        <div>MINT: <span class="highlight">JANUARY 9, 2026</span></div>
+        <div>SUPPLY: <span class="highlight">4,444</span></div>
+        <div>PRICE: <span class="highlight">FREE</span></div>
+        <div>CHAIN: <span class="highlight">ETHEREUM</span></div>
+    </div>
+
+    <div id="kanji-bg">妖怪</div>
+    <div class="torii-symbol">⛩</div>
+
+    <div id="start-screen" class="modal" style="display:flex;">
+        <div class="glitch-text">妖怪 SYNDICATE</div>
+        <div class="tagline">"They live beneath your streets. You were never alone."</div>
+        
+        <div class="subtitle">
+            > ENCRYPTED TRANSMISSION DETECTED<br>
+            > SOURCE: SHIBUYA UNDERGROUND<br>
+            > PROTOCOL: YOKAI_RITUAL.EXE<br>
+            <br>
+            <span style="color:#ff3333;">⛩ THE ELDERS HAVE BEEN WATCHING ⛩</span><br>
+            <br>
+            Ancient spirits walk among us. For centuries, yokai maintained balance<br>
+            between worlds from Tokyo's hidden depths. Now they emerge.<br>
+            <br>
+            <span style="color:#ff6600;">⚠ RITUAL REQUIREMENTS:</span><br>
+            • BREACH THE SYNDICATE GATEWAY<br>
+            • PROVE YOUR WORTH TO THE ELDERS<br>
+            • TRANSCRIBE SHADOW CODES WITH PRECISION<br>
+            <br>
+            <span style="color:#660000; font-size:11px;">[ 4,444 SOULS · FREE MINT · JANUARY 9, 2026 ]</span>
+        </div>
+        <button class="btn-main" onclick="startGame()">ENTER THE SHADOWS</button>
+    </div>
+
+    <div id="terminal-container" style="display:none;">
+        <div id="terminal-header">
+            <div id="terminal-title">妖怪シンジケート // SHADOW TERMINAL</div>
+            <div id="terminal-status">RITUAL STATUS: <span id="status-text">ACTIVE</span></div>
+        </div>
+        <div id="terminal-output"></div>
+        <div id="terminal-input-area">
+            <span id="input-prompt">elder@syndicate:~$</span>
+            <input type="text" id="terminal-input" autocomplete="off" spellcheck="false">
+        </div>
+        <div id="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+    </div>
+
+    <div id="challenge-display">
+        <div id="challenge-title">⛩ SHADOW CODE TRANSCRIPTION ⛩</div>
+        <div style="color:#660000; font-size:12px; margin-top:5px;">THE ELDERS TEST YOUR SPEED</div>
+        <div id="challenge-code">LOADING...</div>
+        <div id="challenge-timer">10</div>
+    </div>
+    
+    <div id="win-screen" class="modal">
+        <div class="glitch-text">ACCESS GRANTED</div>
+        
+        <div class="subtitle elder-text">
+            > RITUAL COMPLETE<br>
+            > GATEWAY: UNSEALED<br>
+            > CLEARANCE: ELDER STATUS<br>
+            <br>
+            <span style="color:#ff0000;">⛩ THE YOKAI RECOGNIZE YOUR SPIRIT ⛩</span><br>
+            <br>
+            You have proven yourself worthy. The Syndicate welcomes you<br>
+            into the shadows. 4,444 souls will rise together.<br>
+            <br>
+            <span style="font-family:'Noto Sans JP', sans-serif; font-weight:bold;">
+            陰の中で、私たちは生きています
+            </span><br>
+            <span style="font-size:11px; color:#660000;">(In the shadows, we live)</span>
+        </div>
+        
+        <a href="https://pfp.yokaisyndicate.com" target="_blank" style="text-decoration:none;">
+            <button class="btn-pfp">FORGE YOUR YOKAI IDENTITY</button>
+        </a>
+        <p style="font-size:10px; color:#cc0000; margin-top:12px;">(CREATE YOUR PFP · SECURE YOUR PLACE)</p>
+        
+        <button onclick="location.reload()" style="background:none; border:1px solid #660000; color:#cc0000; margin-top:30px; cursor:pointer; padding:12px 25px; font-family: 'Courier Prime', monospace; font-size:11px;">REPEAT RITUAL</button>
+    </div>
+
+    <div id="lose-screen" class="modal">
+        <div class="glitch-text" style="color:#660000; text-shadow: 0 0 30px rgba(102, 0, 0, 0.8);">RITUAL FAILED</div>
+        <div class="tagline" style="color:#ff0000;">The shadows reject you...</div>
+        <div class="subtitle" style="text-align:center;">
+            > TRANSCRIPTION ERROR<br>
+            > THE ELDERS ARE DISPLEASED<br>
+            > GATEWAY SEALED<br>
+            <br>
+            <span style="color:#660000;">[ TOO SLOW FOR THE SYNDICATE ]</span>
+        </div>
+        <button class="btn-main" onclick="location.reload()">ATTEMPT AGAIN</button>
+    </div>
+
+    <!-- BLOOD PACT SIGNING SCREEN -->
+    <div id="pact-screen" class="bg1">
+        <div class="pact-scroll">
+            <div class="pact-title">血の契約</div>
+            <div class="pact-subtitle">Blood Pact of the Yokai Syndicate</div>
+            
+            <div class="pact-lore">
+                In shadows deep, the elders wait,<br>
+                Where mortal souls meet spirit's fate.<br>
+                <br>
+                You who've proven worthy this night,<br>
+                Now seal your bond with ancient rite.<br>
+                <br>
+                Sign in blood your solemn vow,<br>
+                To the Syndicate you pledge your oath now.
+            </div>
+            
+            <div class="pact-warning">
+                ⚠ WARNING: JEETERS WILL BE PUNISHED ⚠<br>
+                <span style="font-size:11px;">Those who paper-hand will face the wrath of the elders.</span>
+            </div>
+            
+            <div class="signature-area">
+                <div style="margin-bottom:10px; font-size:13px;">SIGN HERE IN BLOOD:</div>
+                <canvas id="signature-canvas" width="400" height="150"></canvas>
+            </div>
+            
+            <div class="pact-buttons">
+                <button class="btn-clear" onclick="clearSignature()">CLEAR</button>
+                <button class="btn-sign" onclick="acceptPact()">SEAL THE PACT</button>
+            </div>
+            
+            <div style="margin-top:25px; padding-top:20px; border-top:1px solid #660000;">
+                <a href="https://pfp.yokaisyndicate.com/" target="_blank" style="color:#ff0000; text-decoration:none; font-size:12px; display:block; margin-top:10px;">
+                    ⛩ Get Your Identity in the Syndicate ⛩
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIRTHDAY MONTH SCREEN -->
+    <div id="birthday-screen" class="modal">
+        <div class="glitch-text" style="color:#ff0000;">THE ELDERS REVEAL YOUR SPIRIT</div>
+        <div class="subtitle">
+            Enter the month you were born to receive your yokai prophecy
+        </div>
+        <input type="text" id="month-input" placeholder="Enter month (e.g., January)" 
+            style="background:#0a0000; border:2px solid #660000; color:#ff0000; padding:15px; font-family:'Courier Prime',monospace; font-size:16px; text-align:center; margin:20px 0; width:300px;">
+        <button class="btn-main" onclick="revealLore()">REVEAL MY SPIRIT</button>
+        <div id="lore-display"></div>
+    </div>
+
+    <!-- MYTHICAL SCROLL OVERLAY -->
+    <div id="scroll-overlay">
+        <div class="scroll-container">
+            <div class="scroll-top"></div>
+            <div class="scroll-content" id="scroll-content">
+                <!-- Dynamically filled -->
+            </div>
+            <div class="scroll-bottom"></div>
+        </div>
+    </div>
+
+    <!-- SOUND TOGGLE -->
+    <button id="sound-toggle">🔊 SOUND: ON</button>
+
+    <!-- AUDIO ELEMENTS -->
+    <audio id="ambient-sound" loop>
+        <source src="yokai.m4a" type="audio/mp4">
+    </audio>
+    <audio id="typing-sound"></audio>
+    <audio id="success-sound"></audio>
+    <audio id="error-sound"></audio>
+    <audio id="scroll-sound"></audio>
+    <audio id="challenge-sound"></audio>
+
+    <script>
+        // ========== SOUND SYSTEM ==========
+        const sounds = {
+            ambient: new Audio(),
+            typing: new Audio(),
+            success: new Audio(),
+            error: new Audio(),
+            scroll: new Audio(),
+            challenge: new Audio()
+        };
+
+        // Generate simple sound effects using Web Audio API
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let soundEnabled = true;
+
+        function generateTone(frequency, duration, type = 'sine') {
+            if (!soundEnabled) return;
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function playTypingSound() {
+            generateTone(800 + Math.random() * 200, 0.05, 'square');
+        }
+
+        function playSuccessSound() {
+            if (!soundEnabled) return;
+            generateTone(523.25, 0.1); // C5
+            setTimeout(() => generateTone(659.25, 0.1), 100); // E5
+            setTimeout(() => generateTone(783.99, 0.2), 200); // G5
+        }
+
+        function playErrorSound() {
+            if (!soundEnabled) return;
+            generateTone(200, 0.1, 'sawtooth');
+            setTimeout(() => generateTone(150, 0.2, 'sawtooth'), 100);
+        }
+
+        function playScrollSound() {
+            if (!soundEnabled) return;
+            generateTone(440, 0.3); // A4
+            setTimeout(() => generateTone(554.37, 0.3), 150); // C#5
+        }
+
+        function playChallengeSound() {
+            if (!soundEnabled) return;
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => generateTone(880 - i * 100, 0.1), i * 100);
+            }
+        }
+
+        function startAmbient() {
+            if (!soundEnabled) return;
+            const ambient = document.getElementById('ambient-sound');
+            ambient.volume = 0.3;
+            ambient.play().catch(e => console.log('Audio autoplay prevented'));
+            
+            return () => {
+                ambient.pause();
+            };
+        }
+
+        // Sound toggle
+        document.getElementById('sound-toggle').addEventListener('click', function() {
+            soundEnabled = !soundEnabled;
+            this.textContent = soundEnabled ? '🔊 SOUND: ON' : '🔇 SOUND: OFF';
+        });
+
+        // ========== USER UNIQUE SYSTEM ==========
+        let userData = {
+            id: null,
+            spiritName: null,
+            completedPhases: [],
+            visitCount: 0,
+            lastVisit: null
+        };
+
+        // Spirit name generators
+        const spiritPrefixes = [
+            '闇', '影', '夜', '血', '鬼', '幽', '冥', '魔', '妖', '暗',
+            'Kage', 'Yami', 'Oni', 'Akuma', 'Yurei', 'Majin', 'Kuro', 'Shi'
+        ];
+
+        const spiritSuffixes = [
+            '狼', '龍', '虎', '鷹', '蛇', '狐', '烏', '蜘蛛',
+            'maru', 'kage', 'jin', 'gami', 'hime', 'okami', 'ryu', 'ko'
+        ];
+
+        function generateSpiritName(seed) {
+            const prefix = spiritPrefixes[seed % spiritPrefixes.length];
+            const suffix = spiritSuffixes[Math.floor(seed / spiritPrefixes.length) % spiritSuffixes.length];
+            return prefix + suffix;
+        }
+
+        function generateUserId() {
+            return 'YOKAI_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function initializeUser() {
+            const stored = localStorage.getItem('yokai_user_data');
+            
+            if (stored) {
+                userData = JSON.parse(stored);
+                userData.visitCount++;
+                userData.lastVisit = new Date().toISOString();
+            } else {
+                const userId = generateUserId();
+                const seed = parseInt(userId.split('_')[1]) % 1000;
+                userData = {
+                    id: userId,
+                    spiritName: generateSpiritName(seed),
+                    completedPhases: [],
+                    visitCount: 1,
+                    lastVisit: new Date().toISOString(),
+                    firstVisit: new Date().toISOString()
+                };
+            }
+            
+            saveUserData();
+            return userData;
+        }
+
+        function saveUserData() {
+            localStorage.setItem('yokai_user_data', JSON.stringify(userData));
+        }
+
+        // ========== SCROLL SYSTEM ==========
+        const scrollLore = {
+            0: {
+                title: "⛩ THE GATEWAY OPENS ⛩",
+                lore: `Long ago, beneath the neon chaos of Shibuya crossing, ancient spirits dwelled in silence. The yokai watched humanity from the shadows, maintaining balance between worlds. But as humans forgot to fear the darkness, the spirits grew restless...`,
+                message: "You have descended into the underground. The yokai sense your presence."
+            },
+            1: {
+                title: "⛩ COMMUNION WITH THE ANCIENT ⛩",
+                lore: `4,444 souls scattered across Tokyo's hidden depths. Each yokai bears a fragment of forgotten power. Some wear human faces, others reveal their true oni nature. The syndicate seeks those brave enough to bridge both worlds...`,
+                message: "The spirits recognize your determination. You are being tested."
+            },
+            2: {
+                title: "⛩ THE FINAL JUDGMENT ⛩",
+                lore: `The Elders peer into your essence. They have watched for centuries, waiting for those worthy to join the Syndicate. On January 9, 2026, the gateway shall fully open. Will you be among the chosen?`,
+                message: "Your spirit is strong. The transformation awaits..."
+            }
+        };
+
+        function showScroll(phaseIndex) {
+            playScrollSound();
+            const scrollOverlay = document.getElementById('scroll-overlay');
+            const scrollContent = document.getElementById('scroll-content');
+            const scroll = scrollLore[phaseIndex];
+            
+            scrollContent.innerHTML = `
+                <div class="scroll-title">${scroll.title}</div>
+                <div class="scroll-spirit-name">${userData.spiritName}</div>
+                <div class="scroll-text">
+                    ${scroll.message}
+                </div>
+                <div class="scroll-lore">
+                    ${scroll.lore}
+                </div>
+                <button class="scroll-continue" onclick="continueRitual()">CONTINUE THE RITUAL</button>
+            `;
+            
+            scrollOverlay.style.display = 'flex';
+            
+            // Mark phase as completed
+            if (!userData.completedPhases.includes(phaseIndex)) {
+                userData.completedPhases.push(phaseIndex);
+                saveUserData();
+            }
+        }
+
+        function continueRitual() {
+            document.getElementById('scroll-overlay').style.display = 'none';
+            
+            if (currentPhase < phases.length) {
+                printLine('', 'info');
+                printLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+                printLine(`⛩ PHASE ${currentPhase + 1}: ${phases[currentPhase].name}`, 'warning');
+                printLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+                printLine('', 'info');
+                setTimeout(showNextCommand, 800);
+            } else {
+                winGame();
+            }
+        }
+
+        // ========== PARTICLE SYSTEM ==========
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'spirit-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.setProperty('--x-drift', (Math.random() - 0.5) * 200 + 'px');
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Initialize user
+        initializeUser();
+
+        // ========== MONTH LORE SYSTEM ==========
+        const monthLore = {
+            january: {
+                kanji: '灰門',
+                romanji: 'Haimon',
+                meaning: 'Ash Gate',
+                verse: 'Cold teaches patience.\nSilence sharpens you.\nYou endure what others abandon.'
+            },
+            february: {
+                kanji: '追火',
+                romanji: 'Oibi',
+                meaning: 'Banished Flame',
+                verse: 'Fire was taken from you early.\nYou learned control before hunger.\nNow it answers only you.'
+            },
+            march: {
+                kanji: '渡潮',
+                romanji: 'Tochō',
+                meaning: 'Crossing Tide',
+                verse: 'You walk between states.\nChange notices you first.\nThe current bends quietly.'
+            },
+            april: {
+                kanji: '解花',
+                romanji: 'Keka',
+                meaning: 'Unsealed Bloom',
+                verse: 'Life rises at your passing.\nNot all growth is gentle.\nStill, it follows.'
+            },
+            may: {
+                kanji: '鉄根',
+                romanji: 'Tekkon',
+                meaning: 'Iron Root',
+                verse: 'You hold the ground.\nPressure proves nothing to you.\nWhat stands, stands.'
+            },
+            june: {
+                kanji: '陽帳',
+                romanji: 'Yōchō',
+                meaning: 'Veiled Sun',
+                verse: 'Light hides within you.\nWarmth without exposure.\nSeen — but never held.'
+            },
+            july: {
+                kanji: '熱誓',
+                romanji: 'Netsusei',
+                meaning: 'Heatbound Oath',
+                verse: 'Your bonds burn.\nNot fast. Not loud.\nThey do not break.'
+            },
+            august: {
+                kanji: '焔冠',
+                romanji: 'Enkan',
+                meaning: 'Crown of Cinders',
+                verse: 'Power finds you easily.\nIt weighs more than it shines.\nYou carry it.'
+            },
+            september: {
+                kanji: '秋境',
+                romanji: 'Shūkyō',
+                meaning: 'Autumn Threshold',
+                verse: 'You wait.\nHesitation feeds your strength.\nEndings obey you.'
+            },
+            october: {
+                kanji: '見虚',
+                romanji: 'Kenko',
+                meaning: 'Watching Hollow',
+                verse: 'You see what is avoided.\nTruth remains when fear leaves.\nYou remain.'
+            },
+            november: {
+                kanji: '沈歩',
+                romanji: 'Chinpo',
+                meaning: 'Quiet Descent',
+                verse: 'You move without sound.\nDepth, not force, defines you.\nChange follows slowly.'
+            },
+            december: {
+                kanji: '残焔',
+                romanji: 'Zanen',
+                meaning: 'Final Ember',
+                verse: 'Cycles close near you.\nWarmth survives the dark.\nHope lingers.'
+            }
+        };
+
+        // ========== BLOOD PACT SIGNING ==========
+        let canvas, ctx;
+        let isDrawing = false;
+        let hasDrawn = false;
+
+        function initCanvas() {
+            canvas = document.getElementById('signature-canvas');
+            if (!canvas) return;
+            
+            ctx = canvas.getContext('2d');
+            
+            // Set blood red color
+            ctx.strokeStyle = '#8B0000';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = '#ff0000';
+            
+            // Mouse events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Touch events
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            hasDrawn = true;
+            const rect = canvas.getBoundingClientRect();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            if (!touch) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 'mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hasDrawn = false;
+            playTypingSound();
+        }
+
+        function acceptPact() {
+            if (!hasDrawn) {
+                alert('You must sign the pact in blood first.');
+                playErrorSound();
+                return;
+            }
+            
+            playSuccessSound();
+            
+            // Save signature data
+            userData.pactSigned = true;
+            userData.signatureData = canvas.toDataURL();
+            saveUserData();
+            
+            // Hide pact screen, show birthday screen
+            document.getElementById('pact-screen').style.display = 'none';
+            document.getElementById('birthday-screen').style.display = 'flex';
+            document.getElementById('month-input').focus();
+        }
+
+        // ========== BIRTHDAY MONTH LORE REVEAL ==========
+        function revealLore() {
+            const monthInput = document.getElementById('month-input').value.toLowerCase().trim();
+            const lore = monthLore[monthInput];
+            
+            if (!lore) {
+                alert('Invalid month. Please enter a valid month name (e.g., January, February)');
+                playErrorSound();
+                return;
+            }
+            
+            playSuccessSound();
+            
+            // Save birth month
+            userData.birthMonth = monthInput;
+            saveUserData();
+            
+            // Display lore
+            const loreDisplay = document.getElementById('lore-display');
+            loreDisplay.innerHTML = `
+                <div style="margin-top:30px; padding:30px; background:rgba(10,0,0,0.9); border:2px solid #660000; box-shadow:0 0 30px rgba(255,0,0,0.3);">
+                    <div style="font-size:48px; color:#ff0000; font-family:'Noto Sans JP',sans-serif; margin-bottom:15px;">
+                        ${lore.kanji}
+                    </div>
+                    <div style="font-size:20px; color:#cc0000; margin-bottom:10px; font-style:italic;">
+                        ${lore.romanji} - "${lore.meaning}"
+                    </div>
+                    <div style="color:#8a0000; font-size:16px; line-height:1.8; margin-top:20px; white-space:pre-line;">
+                        ${lore.verse}
+                    </div>
+                    <div style="margin-top:40px; padding-top:20px; border-top:1px solid #660000;">
+                        <div style="color:#ff0000; font-size:14px; margin-bottom:15px;">⛩ CLAIM YOUR PLACE IN THE SYNDICATE ⛩</div>
+                        <a href="https://pfp.yokaisyndicate.com/" target="_blank" style="text-decoration:none;">
+                            <button class="btn-main" style="margin:10px;">GET YOUR IDENTITY</button>
+                        </a>
+                        <div style="margin-top:20px; padding-top:15px; border-top:1px solid #330000;">
+                            <div style="color:#cc0000; font-size:12px; margin-bottom:10px;">Share Your Spirit</div>
+                            <button class="btn-main" onclick="shareToTwitter()" style="margin:5px; font-size:12px; padding:10px 20px;">SHARE ON X</button>
+                            <button onclick="location.reload()" style="background:none; border:1px solid #660000; color:#cc0000; cursor:pointer; padding:10px 20px; font-family:'Courier Prime',monospace; font-size:11px;">REPEAT RITUAL</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function shareToTwitter() {
+            const monthInput = document.getElementById('month-input').value.toLowerCase().trim();
+            const lore = monthLore[monthInput];
+            
+            if (!lore) return;
+            
+            const completionTime = formatTime(userData.lastCompletionTime || userData.completionTime || 0);
+            const text = `I've completed the Yokai Syndicate ritual and discovered my spirit essence:\n\n${lore.kanji} (${lore.romanji})\n"${lore.meaning}"\n\nCompletion: ${completionTime}\nVisits: ${userData.visitCount}\n\n@YokaiSyndicate @0xMrinalini\n\nGet your identity: https://pfp.yokaisyndicate.com/`;
+            
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            window.open(twitterUrl, '_blank');
+            
+            playSuccessSound();
+        }
+
+        // ========== SPIRIT FACES ==========
+        const spiritEmojis = ['👹', '😈', '👺', '🦊', '🐉', '🐍', '🦅', '🕷️'];
+        
+        function createSpiritFaces() {
+            for (let i = 0; i < 5; i++) {
+                const face = document.createElement('div');
+                face.className = 'spirit-face';
+                face.textContent = spiritEmojis[Math.floor(Math.random() * spiritEmojis.length)];
+                face.style.left = Math.random() * 90 + 5 + '%';
+                face.style.top = Math.random() * 90 + 5 + '%';
+                face.style.animationDelay = Math.random() * 8 + 's';
+                document.body.appendChild(face);
+                
+                // Randomly show faces
+                setInterval(() => {
+                    if (Math.random() > 0.7) {
+                        face.classList.add('active');
+                        setTimeout(() => face.classList.remove('active'), 3000);
+                    }
+                }, Math.random() * 15000 + 10000);
+            }
+        }
+        createSpiritFaces();
+
+        // ========== BLOOD DRIP ==========
+        function createBloodDrip() {
+            const drip = document.createElement('div');
+            drip.className = 'blood-drip';
+            drip.style.left = Math.random() * 100 + '%';
+            document.body.appendChild(drip);
+            
+            setTimeout(() => drip.remove(), 3000);
+        }
+
+        function triggerBloodDrips() {
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => createBloodDrip(), i * 200);
+            }
+        }
+
+        // ========== COMPLETION TRACKING ==========
+        let gameStartTime = null;
+        let completionTime = null;
+
+        function startTracking() {
+            gameStartTime = Date.now();
+        }
+
+        function calculateCompletionTime() {
+            if (gameStartTime) {
+                completionTime = Math.floor((Date.now() - gameStartTime) / 1000); // in seconds
+                userData.lastCompletionTime = completionTime;
+                userData.totalCompletions = (userData.totalCompletions || 0) + 1;
+                saveUserData();
+                return completionTime;
+            }
+            return 0;
+        }
+
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0s';
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+        }
+
+        // ========== YOKAI TERMINAL GAME ==========
+        const terminalOutput = document.getElementById('terminal-output');
+        const terminalInput = document.getElementById('terminal-input');
+        const statusText = document.getElementById('status-text');
+        const progressBar = document.getElementById('progress-bar');
+        const progressContainer = document.getElementById('progress-container');
+        const challengeDisplay = document.getElementById('challenge-display');
+        const challengeCode = document.getElementById('challenge-code');
+        const challengeTimer = document.getElementById('challenge-timer');
+        const toriiSymbol = document.querySelector('.torii-symbol');
+
+        let gameActive = false;
+        let currentPhase = 0;
+        let awaitingCommand = true;
+        let challengeActive = false;
+        let challengeTimeLeft = 0;
+        let challengeInterval = null;
+        let currentChallengeCode = '';
+
+        // RITUAL PHASES
+        const phases = [
+            {
+                name: "SHIBUYA GATEWAY",
+                commands: [
+                    { cmd: "locate --shibuya-station", response: "Portal found: 35.6595° N, 139.7004° E", delay: 900 },
+                    { cmd: "invoke --underground-passage", response: "Ancient pathways revealed beneath Shibuya crossing...", delay: 1200 },
+                    { cmd: "descend --into-shadow", response: "Descending into yokai territory. The elders await.", delay: 1100, challenge: true }
+                ]
+            },
+            {
+                name: "YOKAI COMMUNION",
+                commands: [
+                    { cmd: "summon --ancient-spirits", response: "Calling the 4,444 souls scattered across Tokyo...", delay: 1000 },
+                    { cmd: "balance --human-spirit", response: "Aligning mortal and yokai energies. The ritual begins.", delay: 1400 },
+                    { cmd: "transcribe --forbidden-texts", response: "Decoding centuries-old syndicate scrolls...", delay: 1200, challenge: true }
+                ]
+            },
+            {
+                name: "ELDER JUDGMENT",
+                commands: [
+                    { cmd: "reveal --true-nature", response: "The elders peer into your spirit...", delay: 1100 },
+                    { cmd: "accept --shadow-pact", response: "You offer yourself to the syndicate...", delay: 1300 },
+                    { cmd: "become --yokai", response: "TRANSFORMATION INITIATED...", delay: 1500, challenge: true }
+                ]
+            }
+        ];
+
+        let currentCommandIndex = 0;
+
+        function startGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('terminal-container').style.display = 'flex';
+            gameActive = true;
+            progressContainer.style.display = 'block';
+            
+            // Start tracking
+            startTracking();
+            
+            // Start ambient sound
+            let stopAmbient = startAmbient();
+            
+            terminalInput.focus();
+            
+            setTimeout(() => {
+                printLine('> INITIATING YOKAI RITUAL PROTOCOL...', 'prompt');
+                printLine('> CONNECTION ESTABLISHED WITH SHIBUYA UNDERGROUND', 'success');
+                printLine(`> SPIRIT RECOGNIZED: ${userData.spiritName}`, 'user-welcome');
+                printLine(`> VISIT COUNT: ${userData.visitCount} | ID: ${userData.id.substr(0, 20)}...`, 'info');
+                printLine('> 陰の者たちがあなたを見ています (The shadow ones are watching you)', 'ritual-text');
+                printLine('> WARNING: ELDERS DEMAND PRECISION AND SPEED', 'warning');
+                printLine('', 'info');
+                printLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+                printLine(`⛩ PHASE 1: ${phases[0].name}`, 'warning');
+                printLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+                printLine('', 'info');
+                showNextCommand();
+            }, 600);
+        }
+
+        function printLine(text, className = '') {
+            const line = document.createElement('div');
+            line.className = 'terminal-line ' + className;
+            line.textContent = text;
+            terminalOutput.appendChild(line);
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        }
+
+        function showNextCommand() {
+            if (currentPhase >= phases.length) {
+                winGame();
+                return;
+            }
+
+            const phase = phases[currentPhase];
+            if (currentCommandIndex >= phase.commands.length) {
+                // Phase completed - show scroll!
+                showScroll(currentPhase);
+                currentPhase++;
+                currentCommandIndex = 0;
+                return;
+            }
+
+            const command = phase.commands[currentCommandIndex];
+            printLine(`> TYPE: ${command.cmd}`, 'prompt');
+            awaitingCommand = true;
+            statusText.textContent = 'AWAITING COMMAND';
+            updateProgress();
+        }
+
+        function handleCommand(input) {
+            if (!gameActive || !awaitingCommand) return;
+
+            const phase = phases[currentPhase];
+            const expectedCommand = phase.commands[currentCommandIndex];
+
+            printLine(`elder@syndicate:~$ ${input}`, 'success');
+            playTypingSound();
+
+            if (input.trim().toLowerCase() === expectedCommand.cmd.toLowerCase()) {
+                awaitingCommand = false;
+                statusText.textContent = 'PROCESSING RITUAL';
+                playSuccessSound();
+                
+                setTimeout(() => {
+                    printLine(expectedCommand.response, 'success');
+                    
+                    if (expectedCommand.challenge) {
+                        setTimeout(() => startChallenge(), 1200);
+                    } else {
+                        currentCommandIndex++;
+                        setTimeout(showNextCommand, 1200);
+                    }
+                }, expectedCommand.delay);
+            } else {
+                printLine('ERROR: Invalid command. The elders are watching...', 'error');
+                playErrorSound();
+                setTimeout(() => showNextCommand(), 1000);
+            }
+        }
+
+        function startChallenge() {
+            challengeActive = true;
+            awaitingCommand = false;
+            challengeDisplay.style.display = 'block';
+            terminalInput.disabled = true;
+            statusText.textContent = 'ELDER CHALLENGE';
+            playChallengeSound();
+            
+            // Generate shadow code
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            currentChallengeCode = '';
+            for (let i = 0; i < 8; i++) {
+                currentChallengeCode += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            challengeCode.textContent = currentChallengeCode;
+            challengeTimeLeft = 9;
+            challengeTimer.textContent = challengeTimeLeft;
+            challengeTimer.classList.remove('critical');
+            
+            challengeInterval = setInterval(() => {
+                challengeTimeLeft--;
+                challengeTimer.textContent = challengeTimeLeft;
+                
+                if (challengeTimeLeft <= 3) {
+                    challengeTimer.classList.add('critical');
+                }
+                
+                if (challengeTimeLeft <= 0) {
+                    clearInterval(challengeInterval);
+                    failChallenge();
+                }
+            }, 1000);
+            
+            terminalInput.value = '';
+            terminalInput.disabled = false;
+            terminalInput.focus();
+        }
+
+        function checkChallenge(input) {
+            if (!challengeActive) return;
+
+            clearInterval(challengeInterval);
+            challengeDisplay.style.display = 'none';
+            
+            if (input.toUpperCase() === currentChallengeCode) {
+                printLine('⛩ TRANSCRIPTION SUCCESSFUL ⛩', 'success');
+                printLine(`The elders approve. Completed in ${9 - challengeTimeLeft}s`, 'success');
+                playSuccessSound();
+                challengeActive = false;
+                currentCommandIndex++;
+                setTimeout(showNextCommand, 1200);
+            } else {
+                failChallenge();
+            }
+        }
+
+        function failChallenge() {
+            challengeActive = false;
+            challengeDisplay.style.display = 'none';
+            printLine('✗ TRANSCRIPTION FAILED - THE SHADOWS REJECT YOU', 'error');
+            playErrorSound();
+            triggerBloodDrips();
+            setTimeout(loseGame, 1200);
+        }
+
+        function updateProgress() {
+            const totalCommands = phases.reduce((sum, phase) => sum + phase.commands.length, 0);
+            const completedCommands = phases.slice(0, currentPhase).reduce((sum, phase) => sum + phase.commands.length, 0) + currentCommandIndex;
+            const progress = (completedCommands / totalCommands) * 100;
+            progressBar.style.width = progress + '%';
+        }
+
+        function winGame() {
+            gameActive = false;
+            printLine('', 'info');
+            printLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'success');
+            printLine('⛩ RITUAL COMPLETE - THE GATEWAY OPENS ⛩', 'ritual-text');
+            printLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'success');
+            printLine('', 'info');
+            printLine(`Welcome, ${userData.spiritName}. You are now one with the Syndicate.`, 'user-welcome');
+            statusText.textContent = 'ELDER STATUS';
+            
+            playSuccessSound();
+            setTimeout(() => playSuccessSound(), 300);
+            
+            // Calculate completion time
+            calculateCompletionTime();
+            
+            // Reveal torii
+            toriiSymbol.style.opacity = '0.15';
+            toriiSymbol.style.transform = 'translate(-50%, -50%) scale(1)';
+            
+            // Mark completion
+            userData.completedPhases.push('RITUAL_COMPLETE');
+            saveUserData();
+            
+            setTimeout(() => {
+                document.getElementById('terminal-container').style.display = 'none';
+                document.getElementById('pact-screen').style.display = 'flex';
+                initCanvas();
+            }, 2000);
+        }
+
+        function loseGame() {
+            gameActive = false;
+            statusText.textContent = 'RITUAL FAILED';
+            terminalInput.disabled = true;
+            
+            printLine('', 'info');
+            printLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'error');
+            printLine('THE ELDERS HAVE SPOKEN', 'error');
+            printLine('YOU ARE TOO SLOW FOR THE SYNDICATE', 'error');
+            printLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'error');
+            
+            setTimeout(() => {
+                document.getElementById('lose-screen').style.display = 'flex';
+            }, 1500);
+        }
+
+        // INPUT HANDLING
+        terminalInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const input = terminalInput.value;
+                terminalInput.value = '';
+                
+                if (challengeActive) {
+                    checkChallenge(input);
+                } else if (awaitingCommand && input.trim()) {
+                    handleCommand(input);
+                }
+            } else if (e.key.length === 1) {
+                playTypingSound();
+            }
+        });
+
+        // CLICK TO FOCUS
+        document.getElementById('terminal-container').addEventListener('click', () => {
+            if (!terminalInput.disabled) {
+                terminalInput.focus();
+            }
+        });
+
+        // ========== MONTH INPUT HANDLER ==========
+        const monthInput = document.getElementById('month-input');
+        const monthLoreContainer = document.getElementById('month-lore-container');
+
+        monthInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const month = monthInput.value.trim().toLowerCase();
+                const lore = monthLore[month];
+                
+                if (lore) {
+                    playScrollSound();
+                    userData.birthMonth = month;
+                    userData.birthLore = lore;
+                    saveUserData();
+                    
+                    monthLoreContainer.innerHTML = `
+                        <div class="month-lore-box">
+                            <div class="month-kanji">${lore.kanji}</div>
+                            <div class="month-meaning">${lore.romanji} | ${lore.meaning}</div>
+                            <div class="month-verse">${lore.verse.replace(/\n/g, '<br>')}</div>
+                        </div>
+                    `;
+                    
+                    monthInput.style.display = 'none';
+                    
+                    // Show Twitter share after 3 seconds
+                    setTimeout(showTwitterShare, 3000);
+                } else {
+                    monthInput.style.borderColor = '#ff0000';
+                    monthInput.placeholder = 'INVALID - TRY AGAIN';
+                    playErrorSound();
+                    setTimeout(() => {
+                        monthInput.style.borderColor = '#8a0000';
+                        monthInput.placeholder = 'JANUARY';
+                    }, 1000);
+                }
+            }
+        });
+
+        function showTwitterShare() {
+            const time = formatTime(completionTime);
+            const visits = userData.visitCount;
+            const lore = userData.birthLore;
+            
+            // Create mysterious Twitter message
+            const tweetText = `I descended into the shadows...\n\n🩸 Spirit: ${userData.spiritName}\n⛩ Birth Mark: ${lore.kanji} (${lore.romanji})\n⏱ Ritual Time: ${time}\n👁 Visits: ${visits}\n\n${lore.verse.split('\n')[0]}\n\nThe Syndicate recognizes me.\n\nJoin the ritual before Jan 9 👇\n\ncc: @YokaiSyndicate @0xMrinalini`;
+            
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+            
+            const shareButton = document.createElement('a');
+            shareButton.href = twitterUrl;
+            shareButton.target = '_blank';
+            shareButton.className = 'btn-twitter';
+            shareButton.innerHTML = '🐦 SHARE YOUR FATE ON X';
+            
+            monthLoreContainer.appendChild(shareButton);
+            
+            // Also add a replay button
+            const replayButton = document.createElement('button');
+            replayButton.className = 'btn-main';
+            replayButton.textContent = 'REPEAT RITUAL';
+            replayButton.style.marginTop = '15px';
+            replayButton.onclick = () => location.reload();
+            monthLoreContainer.appendChild(replayButton);
+        }
+    </script>
+</body>
+</html>
